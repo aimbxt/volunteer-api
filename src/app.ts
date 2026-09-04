@@ -4,7 +4,7 @@ const app: Express = express();
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
+  res.send('volunteer-api running');
 });
 
 export default app;

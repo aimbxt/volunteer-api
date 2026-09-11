@@ -1,7 +1,18 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-const shiftSchema = new Schema({
+export interface IShift {
+    title: String;
+    description?: String;
+    location: string;
+    startTime: Date;
+    endTime: Date;
+    capacity: number;
+    createdAt: Date;
+    updatedAt: Date
+}
+
+const shiftSchema = new Schema<IShift>({
     title: {
         type: String,
         required: true,
@@ -31,4 +42,4 @@ const shiftSchema = new Schema({
     }
 }, {timestamps: true});
 
-export const Shift = mongoose.model("Shift", shiftSchema);
+export const Shift = mongoose.model<IShift>("Shift", shiftSchema);

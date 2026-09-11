@@ -1,26 +1,32 @@
 import mongoose from "mongoose";
 
-const signupSchema = new mongoose.Schema({
-    shiftId: {
+export interface ISignup {
+  volunteer: mongoose.Schema.Types.ObjectId;
+  shift: mongoose.Schema.Types.ObjectId;
+  status: 'confirmed' | 'waitlisted' | 'cancelled';
+}
+
+const signupSchema = new mongoose.Schema<ISignup>({
+    volunteer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Volunteer",
+      required: true
+    },
+    shift: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Shift",
-      required: true,
+      required: true
     },
-    volunteerName: {
+    status: {
       type: String,
-      required: true,
-      trim: true,
-    },
-    volunteerEmail: {
-      type: String,
-      required: true,
-      trim: true,
-      lowercase: true,
-    },
+      enum: ["confirmed", "waitlisted", "cancelled"],
+      required: true
+    }
+    
   },
   {
     timestamps: true,
   }
 )
 
-export const Signup = mongoose.model("Signup", signupSchema)
+export const Signup = mongoose.model<ISignup>("Signup", signupSchema)

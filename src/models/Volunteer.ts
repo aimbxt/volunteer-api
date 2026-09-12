@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
-export interface IVolunteer {
-  name: String;
-  email: String;
+export interface IVolunteer extends Document {
+  name: string;
+  email: string;
   createdAt: Date;
   updatedAt: Date;
 }

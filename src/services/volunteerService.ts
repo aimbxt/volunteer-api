@@ -1,6 +1,7 @@
 import { Volunteer } from '../models/Volunteer.js';
 
-export async function createVolunteer(data: { name: string, email: string, createdAt: Date, updatedAt: Date}) {
+type CreateVolunteerInput = { name: string; email: string};
+export async function createVolunteer(data: CreateVolunteerInput) {
     return await Volunteer.create(data);
 }
 
@@ -12,10 +13,16 @@ export async function getVolunteerById(id: string) {
     return await Volunteer.findById(id);
 }
 
-export async function updateVolunteer(id: string, name: string) {
+export async function updateVolunteer(id: string, data: Partial<{ name: string; email: string}>) {
     const volunteer = await getVolunteerById(id);
     if (volunteer) {
-        volunteer.name = name;
+        Object.assign(volunteer, data);
         await volunteer.save();
     }
+    return volunteer;
+}
+
+export async function deleteVolunteer(id: string) {
+    const deleted = await Volunteer.findByIdAndDelete(id);
+    return deleted;
 }

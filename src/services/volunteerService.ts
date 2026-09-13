@@ -1,4 +1,4 @@
-import { Volunteer } from '../models/Volunteer.js';
+import { Volunteer } from '../models/Volunteer.ts';
 
 type CreateVolunteerInput = { name: string; email: string};
 export async function createVolunteer(data: CreateVolunteerInput) {

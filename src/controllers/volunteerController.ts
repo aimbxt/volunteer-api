@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express";
-import * as volunteerService from "../services/volunteerService.js";
+import * as volunteerService from "../services/volunteerService.ts";
 
 export async function createVolunteer(req: Request, res: Response) {
     try {

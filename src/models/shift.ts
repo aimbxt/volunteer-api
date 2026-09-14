@@ -2,12 +2,13 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 export interface IShift {
-    title: String;
-    description?: String;
+    title: string;
+    description?: string;
     location: string;
     startTime: Date;
     endTime: Date;
     capacity: number;
+    confirmedCount: number;
     createdAt: Date;
     updatedAt: Date
 }
@@ -39,6 +40,11 @@ const shiftSchema = new Schema<IShift>({
         type: Number,
         required: true,
         min: 1
+    },
+    confirmedCount: {
+        type: Number,
+        default: 0,
+        min: 0
     }
 }, {timestamps: true});
 

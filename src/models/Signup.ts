@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 export interface ISignup {
-  volunteer: mongoose.Schema.Types.ObjectId;
-  shift: mongoose.Schema.Types.ObjectId;
+  volunteer: mongoose.Types.ObjectId;
+  shift: mongoose.Types.ObjectId;
   status: 'confirmed' | 'waitlisted' | 'cancelled';
 }
 

@@ -1,9 +1,6 @@
 import { Shift } from "../models/Shift.ts";
 import { Volunteer } from "../models/Volunteer.ts";
 import { Signup } from "../models/Signup.ts";
-import type { IShift } from "../models/Shift.ts"
-import type { IVolunteer } from "../models/Volunteer.ts"
-import type { ISignup } from "../models/Signup.ts";
 import { NotFoundError } from "../errors.ts";
 
 
@@ -25,4 +22,12 @@ export async function createSignup(shiftId: string, volunteerId: string) {
     shift: shift._id,
     status: result ? 'confirmed' : 'waitlisted',
   });
+}
+
+export async function getShiftSignups(id: string) {
+    return await Signup.find({ shift: id });
+}
+
+export async function getVolunteerSignups(id: string) {
+    return await Signup.find({ volunteer: id })
 }

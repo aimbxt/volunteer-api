@@ -13,9 +13,6 @@ export async function createVolunteer(req: Request, res: Response) {
 export async function getVolunteers(req: Request, res: Response) {
     try {
         const volunteers = await volunteerService.getVolunteers();
-        if (!volunteers) {
-            return res.status(404).json({ error: "could not fetch volunteers" });
-        }
         return res.status(200).json(volunteers); 
     } catch (err) {
         res.status(500).json({ error: "Failed to fetch volunteers" });
@@ -24,7 +21,10 @@ export async function getVolunteers(req: Request, res: Response) {
 
 export async function getVolunteerById(req: Request, res: Response) {
     try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        if (Array.isArray(req.params.id)) {
+            return res.status(400).json({ error: "id must be a single value" });
+        }
+        const id = req.params.id;
         const volunteer = await volunteerService.getVolunteerById(id);
         if (!volunteer) {
             return res.status(404).json({ error: "volunteer not found" });
@@ -37,7 +37,10 @@ export async function getVolunteerById(req: Request, res: Response) {
 
 export async function updateVolunteer(req: Request, res: Response) {
     try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        if (Array.isArray(req.params.id)) {
+            return res.status(400).json({ error: "id must be a single value" });
+        }
+        const id = req.params.id;
         const volunteer = await volunteerService.updateVolunteer(id, req.body);
         if (!volunteer) {
             return res.status(404).json({ error: "volunteer not found" });
@@ -50,7 +53,10 @@ export async function updateVolunteer(req: Request, res: Response) {
 
 export async function deleteVolunteer(req: Request, res: Response) {
     try {
-        const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+        if (Array.isArray(req.params.id)) {
+            return res.status(400).json({ error: "id must be a single value" });
+        }
+        const id = req.params.id;
         const volunteer = await volunteerService.deleteVolunteer(id);
         if (!volunteer) {
             return res.status(404).json({ error: "volunteer not found" });

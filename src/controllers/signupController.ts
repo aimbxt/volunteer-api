@@ -2,11 +2,16 @@ import { type Request, type Response } from "express";
 import mongoose from "mongoose";
 import * as signupService from '../services/signupService.ts';
 import { ConflictError, NotFoundError } from "../errors.ts";
+import { SignupSchema } from "../validators/signupValidator.ts";
 
 export async function createSignup(req: Request, res: Response) {
     try {
+        const result = SignupSchema.safeParse(req.body);
+        if (!result.success) {
+            return res.status(400).json({ error: "Invalid request body" });
+        }
         const shiftId = req.params.id;
-        const volunteerId = req.body.volunteerId;
+        const volunteerId = result.data.volunteerId;
         if (typeof shiftId !== "string" || !mongoose.Types.ObjectId.isValid(shiftId) ||
             typeof volunteerId !== "string" || !mongoose.Types.ObjectId.isValid(volunteerId)) {
             return res.status(400).json({ error: "invalid id parameter" });

@@ -1,7 +1,7 @@
 import { Shift } from "../models/Shift.ts";
 import { Volunteer } from "../models/Volunteer.ts";
 import { Signup } from "../models/Signup.ts";
-import { NotFoundError } from "../errors.ts";
+import { NotFoundError, ConflictError } from "../errors.ts";
 
 
 export async function createSignup(shiftId: string, volunteerId: string) {
@@ -30,4 +30,44 @@ export async function getShiftSignups(id: string) {
 
 export async function getVolunteerSignups(id: string) {
     return await Signup.find({ volunteer: id })
+}
+
+export async function cancelSignup(id: string) {
+    const signup = await Signup.findById(id);
+    if (!signup) {
+        throw new NotFoundError("could not find signup");
+    }
+    const shift = await Shift.findById(signup.shift);
+    if (!shift) {
+        throw new NotFoundError("could not find shift");
+    }
+    if (signup.status == "confirmed") {
+        const cancel = await Shift.findOneAndUpdate(
+            { _id: shift.id, $expr: { $gt: ["$confirmedCount", 0] } },
+            { $inc: { confirmedCount: -1 } }
+        );
+        signup.status = "cancelled";
+        await signup.save();
+        const candidate = await Signup.findOne({ shift: shift._id, status: "waitlisted"}).sort({ createdAt: 1 });
+        if (!candidate) {
+            return signup;
+        }
+        await Shift.findOneAndUpdate(
+            { _id: shift.id, $expr: { $lt: ["$confirmedCount", "$capacity"] } },
+            { $inc: { confirmedCount: 1 } }
+        );
+        candidate.status = "confirmed";
+        return await candidate.save();
+    }
+    if (signup.status == "cancelled") {
+        //...
+        throw new ConflictError("signup already cancelled");
+    } 
+
+    //waitlist
+    if (signup.status == "waitlisted") {
+        signup.status = "cancelled";
+        await signup.save();
+    }
+    return signup;
 }

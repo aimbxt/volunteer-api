@@ -57,7 +57,8 @@ export async function cancelSignup(id: string) {
             { $inc: { confirmedCount: 1 } }
         );
         candidate.status = "confirmed";
-        return await candidate.save();
+        await candidate.save();
+        return signup;
     }
     if (signup.status == "cancelled") {
         //...

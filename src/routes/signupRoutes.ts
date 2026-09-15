@@ -1,6 +1,6 @@
-import express from 'express';
+import { Router } from 'express';
 import * as signupController from '../controllers/signupController.ts';
 
-const router = express.Router();
-router.post('/');
+const router = Router();
+router.patch('/:id/cancel', signupController.cancelSignup);
 export default router;

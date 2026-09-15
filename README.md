@@ -15,8 +15,6 @@ Backend API for volunteer shift signups. TypeScript, Express 5, MongoDB/Mongoose
 - **Shift** — `title`, `description?`, `location`, `startTime`, `endTime`, `capacity`, `confirmedCount`
 - **Signup** — junction collection: `volunteer` (ref), `shift` (ref), `status` (`confirmed` | `waitlisted` | `cancelled`)
 
-Partial unique index on `(volunteer, shift)` excluding `cancelled` — no duplicate active signups, but re-signup after cancelling is allowed.
-
 ## Endpoints
 
 ```

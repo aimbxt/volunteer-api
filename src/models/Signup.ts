@@ -4,6 +4,8 @@ export interface ISignup {
   volunteer: mongoose.Types.ObjectId;
   shift: mongoose.Types.ObjectId;
   status: 'confirmed' | 'waitlisted' | 'cancelled';
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const signupSchema = new mongoose.Schema<ISignup>({
@@ -21,11 +23,19 @@ const signupSchema = new mongoose.Schema<ISignup>({
       type: String,
       enum: ["confirmed", "waitlisted", "cancelled"],
       required: true
-    }
+    },
     
   },
   {
     timestamps: true,
+  }
+)
+
+signupSchema.index(
+  { volunteer: 1, shift: 1},
+  {
+    unique: true,
+    partialFilterExpression: { status: { $ne: "cancelled"}}
   }
 )
 

@@ -1,4 +1,5 @@
 import { type Request, type Response } from "express";
+import mongoose from "mongoose";
 import * as signupService from '../services/signupService.ts';
 import { ConflictError, NotFoundError } from "../errors.ts";
 
@@ -6,8 +7,9 @@ export async function createSignup(req: Request, res: Response) {
     try {
         const shiftId = req.params.id;
         const volunteerId = req.body.volunteerId;
-        if (typeof volunteerId !== "string" || typeof shiftId !== "string") {
-            return res.status(400).json({ error: "id must be a string" });
+        if (typeof shiftId !== "string" || !mongoose.Types.ObjectId.isValid(shiftId) ||
+            typeof volunteerId !== "string" || !mongoose.Types.ObjectId.isValid(volunteerId)) {
+            return res.status(400).json({ error: "invalid id parameter" });
         }
         const signup = await signupService.createSignup(shiftId, volunteerId);
         return res.status(201).json(signup);
@@ -24,10 +26,11 @@ export async function createSignup(req: Request, res: Response) {
 
 export async function getShiftSignups(req: Request, res: Response) {
     try {
-        if (typeof req.params.id !== "string") {
-            return res.status(400).json({ error: "id must be a string" });
+        const id = req.params.id;
+        if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "invalid id parameter" });
         }
-        const signups = await signupService.getShiftSignups(req.params.id);
+        const signups = await signupService.getShiftSignups(id);
         return res.status(200).json(signups);
     } catch (err) {
         return res.status(500).json({ message: "failed to get shift signups" });
@@ -36,10 +39,11 @@ export async function getShiftSignups(req: Request, res: Response) {
 
 export async function getVolunteerSignups(req: Request, res: Response) {
     try {
-        if (typeof req.params.id !== "string") {
-            return res.status(400).json({ error: "id must be a string" });
+        const id = req.params.id;
+        if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "invalid id parameter" });
         }
-        const signups = await signupService.getVolunteerSignups(req.params.id);
+        const signups = await signupService.getVolunteerSignups(id);
         return res.status(200).json(signups);
     } catch (err) {
         return res.status(500).json({ message: "failed to get volunteer signups" });
@@ -48,10 +52,11 @@ export async function getVolunteerSignups(req: Request, res: Response) {
 
 export async function cancelSignup(req: Request, res: Response) {
     try {
-        if (typeof req.params.id !== "string") {
-            return res.status(400).json({ error: "id must be a string" });
+        const id = req.params.id;
+        if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ error: "invalid id parameter" });
         }
-        const signup = await signupService.cancelSignup(req.params.id);
+        const signup = await signupService.cancelSignup(id);
         return res.status(200).json(signup);
     } catch (err) {
         if (err instanceof NotFoundError) {

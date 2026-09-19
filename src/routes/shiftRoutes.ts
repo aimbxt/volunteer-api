@@ -4,6 +4,7 @@ import * as signupController from '../controllers/signupController.ts';
 
 const router = Router();
 router.get("/", shiftController.getShifts);
+router.get("/upcoming", shiftController.getUpcomingShifts);
 router.get("/:id", shiftController.getShiftById);
 router.post("/", shiftController.createShift);
 router.patch("/:id", shiftController.updateShift);

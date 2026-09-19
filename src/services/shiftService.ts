@@ -9,6 +9,12 @@ export async function getShifts() {
     return await Shift.find();
 }
 
+export async function getUpcomingShifts() {
+    return await Shift.find({
+        startTime: { $gte: new Date() }
+    }).sort({ startTime: 1 });
+}
+
 export async function getShiftById(id: string) {
     return await Shift.findById(id);
 }

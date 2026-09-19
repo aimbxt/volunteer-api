@@ -65,6 +65,39 @@ describe("Shift Signups API Lifecycle", () => {
     assert.strictEqual(res.body.isFull, false);
   });
 
+  it("should return upcoming shifts in chronological order", async () => {
+    await Shift.create({
+      title: "Past shift",
+      location: "Old Town",
+      startTime: new Date("2020-01-01T09:00:00Z"),
+      endTime: new Date("2020-01-01T12:00:00Z"),
+      capacity: 5,
+    });
+
+    const futureShift = await Shift.create({
+      title: "Future shift",
+      location: "Downtown",
+      startTime: new Date("2030-01-01T09:00:00Z"),
+      endTime: new Date("2030-01-01T12:00:00Z"),
+      capacity: 5,
+    });
+
+    const nearFutureShift = await Shift.create({
+      title: "Next shift",
+      location: "Riverside",
+      startTime: new Date("2029-01-01T09:00:00Z"),
+      endTime: new Date("2029-01-01T12:00:00Z"),
+      capacity: 5,
+    });
+
+    const res = await request(app).get("/api/shifts/upcoming");
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.length, 2);
+    assert.strictEqual(res.body[0]._id, nearFutureShift._id.toString());
+    assert.strictEqual(res.body[1]._id, futureShift._id.toString());
+  });
+
   it("should waitlist a signup when the shift is at full capacity", async () => {
     const alice = await Volunteer.create({ name: "Alice", email: "alice@test.com" });
     const bob = await Volunteer.create({ name: "Bob", email: "bob@test.com" });

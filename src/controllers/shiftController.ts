@@ -17,6 +17,11 @@ export async function getShifts(req: Request, res: Response) {
     return res.status(200).json(shifts);
 }
 
+export async function getUpcomingShifts(req: Request, res: Response) {
+    const shifts = await shiftService.getUpcomingShifts();
+    return res.status(200).json(shifts);
+}
+
 export async function getShiftById(req: Request, res: Response) {
     const id = req.params.id;
     if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {

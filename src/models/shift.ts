@@ -46,6 +46,18 @@ const shiftSchema = new Schema<IShift>({
         default: 0,
         min: 0
     }
-}, {timestamps: true});
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+shiftSchema.virtual('spotsLeft').get(function() {
+    return Math.max(this.capacity - this.confirmedCount, 0);
+});
+
+shiftSchema.virtual('isFull').get(function() {
+    return this.confirmedCount >= this.capacity;
+});
 
 export const Shift = mongoose.model<IShift>("Shift", shiftSchema);

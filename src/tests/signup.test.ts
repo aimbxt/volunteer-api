@@ -44,6 +44,27 @@ describe("Shift Signups API Lifecycle", () => {
     assert.strictEqual(res.body.status, "confirmed");
   });
 
+  it("should include remaining capacity details on shift responses", async () => {
+    const alice = await Volunteer.create({ name: "Alice", email: "alice@test.com" });
+    const shift = await Shift.create({
+      title: "Sorting", location: "Downtown",
+      startTime: new Date("2026-10-01T09:00:00Z"),
+      endTime: new Date("2026-10-01T12:00:00Z"),
+      capacity: 2,
+    });
+
+    await request(app)
+      .post(`/api/shifts/${shift._id}/signups`)
+      .send({ volunteerId: alice._id.toString() });
+
+    const res = await request(app).get(`/api/shifts/${shift._id}`);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.confirmedCount, 1);
+    assert.strictEqual(res.body.spotsLeft, 1);
+    assert.strictEqual(res.body.isFull, false);
+  });
+
   it("should waitlist a signup when the shift is at full capacity", async () => {
     const alice = await Volunteer.create({ name: "Alice", email: "alice@test.com" });
     const bob = await Volunteer.create({ name: "Bob", email: "bob@test.com" });

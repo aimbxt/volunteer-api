@@ -36,6 +36,15 @@ export async function getVolunteerSignups(req: Request, res: Response) {
     return res.status(200).json(signups);
 }
 
+export async function getVolunteerSignupSummary(req: Request, res: Response) {
+    const id = req.params.id;
+    if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ error: "invalid id parameter" });
+    }
+    const summary = await signupService.getVolunteerSignupSummary(id);
+    return res.status(200).json(summary);
+}
+
 export async function cancelSignup(req: Request, res: Response) {
     const id = req.params.id;
     if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {

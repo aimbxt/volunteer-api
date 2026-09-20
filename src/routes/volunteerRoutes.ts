@@ -11,6 +11,7 @@ router.patch("/:id", volunteerController.updateVolunteer);
 router.delete("/:id", volunteerController.deleteVolunteer);
 
 //signups
+router.get("/:id/summary", signupController.getVolunteerSignupSummary);
 router.get("/:id/signups", signupController.getVolunteerSignups);
 
 export default router;

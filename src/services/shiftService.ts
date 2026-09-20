@@ -1,4 +1,4 @@
-import { Shift } from "../models/Shift.ts";
+import { Shift } from "../models/shift.ts";
 
 type CreateShiftInput = { title: string; description?: string; location: string; startTime: Date; endTime: Date; capacity: number; }
 export async function createShift(data: CreateShiftInput) {

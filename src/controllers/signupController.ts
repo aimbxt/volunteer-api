@@ -14,6 +14,12 @@ export async function createSignup(req: Request, res: Response) {
         typeof volunteerId !== "string" || !mongoose.Types.ObjectId.isValid(volunteerId)) {
         return res.status(400).json({ error: "invalid id parameter" });
     }
+    if (!req.user) {
+        return res.status(401).json({ error: "missing authentication token" });
+    }
+    if (req.user.role !== "admin" && volunteerId !== req.user.id) {
+        return res.status(403).json({ error: "you may only sign up as yourself" });
+    }
     const signup = await signupService.createSignup(shiftId, volunteerId);
     return res.status(201).json(signup);
 }
@@ -50,6 +56,9 @@ export async function cancelSignup(req: Request, res: Response) {
     if (typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ error: "invalid id parameter" });
     }
-    const signup = await signupService.cancelSignup(id);
+    if (!req.user) {
+        return res.status(401).json({ error: "missing authentication token" });
+    }
+    const signup = await signupService.cancelSignup(id, req.user);
     return res.status(200).json(signup);
 }

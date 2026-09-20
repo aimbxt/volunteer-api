@@ -1,8 +1,10 @@
 import { Shift } from "../models/shift.ts";
-import { Volunteer } from "../models/Volunteer.ts";
+import { Volunteer, type VolunteerRole } from "../models/Volunteer.ts";
 import { Signup } from "../models/Signup.ts";
-import { NotFoundError, ConflictError } from "../errors.ts";
+import { NotFoundError, ConflictError, ForbiddenError } from "../errors.ts";
 import mongoose from "mongoose";
+
+export type Requester = { id: string; role: VolunteerRole };
 
 
 export async function createSignup(shiftId: string, volunteerId: string) {
@@ -51,10 +53,13 @@ export async function getVolunteerSignupSummary(id: string) {
     return summary ?? { total: 0, confirmed: 0, waitlisted: 0, cancelled: 0 };
 }
 
-export async function cancelSignup(id: string) {
+export async function cancelSignup(id: string, requester: Requester) {
     const signup = await Signup.findById(id);
     if (!signup) {
         throw new NotFoundError("could not find signup");
+    }
+    if (requester.role !== "admin" && String(signup.volunteer) !== requester.id) {
+        throw new ForbiddenError("you may only cancel your own signups");
     }
     const shift = await Shift.findById(signup.shift);
     if (!shift) {

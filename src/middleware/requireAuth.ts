@@ -60,3 +60,16 @@ export function requireRole(...roles: VolunteerRole[]) {
         next();
     };
 }
+
+export function requireSelfOrAdmin(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        throw new UnauthorizedError("missing authentication token");
+    }
+    if (req.user.role === "admin") {
+        return next();
+    }
+    if (req.params.id !== req.user.id) {
+        throw new ForbiddenError("you may only access your own record");
+    }
+    next();
+}

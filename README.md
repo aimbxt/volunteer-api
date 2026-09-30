@@ -1,74 +1,109 @@
 # Volunteer API
-Backend API for volunteer shift signups. TypeScript, Express 5, MongoDB/Mongoose, Zod. No auth implemented yet.
-REST API for scheduling volunteer shifts, with capacity limits, waitlists, and JWT authentication.
+
+A REST API for scheduling volunteer shifts, with capacity limits, waitlists, and JWT authentication.
+
 ## Stack
-**Stack:** TypeScript, Node 24, Express 5, MongoDB/Mongoose, Zod, JWT, bcrypt
-- Node 24 native TS execution (no `tsx`/`ts-node`)
-- Express 5 + MongoDB Atlas via Mongoose
+
+- TypeScript
+- Node.js 24 with native TypeScript execution (no `tsx` or `ts-node`)
+- Express 5
+- MongoDB Atlas with Mongoose
 - Zod for request validation
-- `node:test` + `supertest` + `mongodb-memory-server` for tests
+- JWT and bcrypt for authentication
+- `node:test`, Supertest, and `mongodb-memory-server` for integration tests
+
 ## Features
+
+- **Race-safe capacity:** Signups claim spots with an atomic `findOneAndUpdate`, so concurrent requests cannot overbook a shift.
+- **Waitlists:** Signups made after a shift reaches capacity are waitlisted. When a confirmed volunteer cancels, the oldest waitlisted signup is promoted automatically.
+- **Authentication and authorization:** Passwords are hashed with bcrypt. Stateless JWTs identify users, while role (`volunteer` or `admin`) and ownership checks protect routes.
+- **Validation and error handling:** Zod validates request bodies. Typed errors are mapped to HTTP status codes by centralized error middleware.
+
 ## Data Model
-- **Race-safe capacity:** signups claim spots with atomic `findOneAndUpdate`, so concurrent requests can't overbook a shift.
-- **Waitlist:** signups past capacity are waitlisted, and the oldest one is promoted automatically when a confirmed volunteer cancels.
-- **Auth:** passwords hashed with bcrypt, stateless JWTs, and role (`volunteer` / `admin`) plus ownership checks on every protected route.
-- **Validation and errors:** Zod validates request bodies; typed errors map to HTTP status codes in one middleware.
-- **Volunteer** — `name`, `email`
-- **Shift** — `title`, `description?`, `location`, `startTime`, `endTime`, `capacity`, `confirmedCount`
-- **Signup** — junction collection: `volunteer` (ref), `shift` (ref), `status` (`confirmed` | `waitlisted` | `cancelled`)
+
+- **Volunteer:** `name`, `email`
+- **Shift:** `title`, `description?`, `location`, `startTime`, `endTime`, `capacity`, `confirmedCount`
+- **Signup:** Junction collection containing `volunteer` (ref), `shift` (ref), and `status` (`confirmed`, `waitlisted`, or `cancelled`)
+
 ## Setup
-## Endpoints
+
+Install dependencies:
+
 ```bash
 npm install
-npm run dev
 ```
+
 Create a `.env` file in the project root:
-```
-Volunteer: POST/GET /api/volunteers, GET/PATCH/DELETE /api/volunteers/:id
-Shift:     POST/GET /api/shifts, GET/PATCH/DELETE /api/shifts/:id
-Signup:    POST /api/shifts/:id/signups        (create)
-           GET  /api/shifts/:id/signups        (roster)
-           GET  /api/volunteers/:id/signups    (a volunteer's signups)
-           PATCH /api/signups/:id/cancel       (cancel)
+
+```dotenv
 MONGODB_URI=mongodb+srv://...
 JWT_SECRET=<output of: openssl rand -hex 32>
 ```
-Signup has no full CRUD, no `DELETE` — cancelled signups are kept for audit history and the promotion query.
-Other scripts: `npm test`, `npm run typecheck`, `npm run build`, `npm start`.
-## Error Handling
-## Endpoints
-Custom `NotFoundError`/`ConflictError` thrown from services, caught by one centralized error middleware in `app.ts` (`404`/`409`/`500`). Controllers have no try/catch.
-Every route except register and login requires `Authorization: Bearer <token>`.
-## Validation
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+## API Endpoints
+
+Every route except registration and login requires an `Authorization: Bearer <token>` header.
+
 | Method | Path | Access |
 | --- | --- | --- |
-| POST | `/api/auth/register`, `/api/auth/login` | Public |
-| GET | `/api/auth/me` | Any user |
-| GET | `/api/shifts`, `/api/shifts/upcoming`, `/api/shifts/:id` | Any user |
-| POST, PATCH, DELETE | `/api/shifts`, `/api/shifts/:id` | Admin |
-| POST | `/api/shifts/:id/signups` | Self or admin |
-| GET | `/api/shifts/:id/signups` | Admin |
-| PATCH | `/api/signups/:id/cancel` | Owner or admin |
-| GET, PATCH | `/api/volunteers/:id` | Self or admin |
-| GET | `/api/volunteers/:id/signups`, `/api/volunteers/:id/summary` | Self or admin |
-| GET, POST | `/api/volunteers` | Admin |
-| DELETE | `/api/volunteers/:id` | Admin |
-Zod schemas in `src/validators/` validate request bodies before they hit a service — includes a cross-field check (`endTime > startTime`) and ObjectId format checks. Route params are guarded separately.
+| `POST` | `/api/auth/register` | Public |
+| `POST` | `/api/auth/login` | Public |
+| `GET` | `/api/auth/me` | Any authenticated user |
+| `GET` | `/api/shifts` | Any authenticated user |
+| `GET` | `/api/shifts/upcoming` | Any authenticated user |
+| `GET` | `/api/shifts/:id` | Any authenticated user |
+| `POST` | `/api/shifts` | Admin |
+| `PATCH` | `/api/shifts/:id` | Admin |
+| `DELETE` | `/api/shifts/:id` | Admin |
+| `POST` | `/api/shifts/:id/signups` | Self or admin |
+| `GET` | `/api/shifts/:id/signups` | Admin |
+| `PATCH` | `/api/signups/:id/cancel` | Owner or admin |
+| `GET` | `/api/volunteers` | Admin |
+| `POST` | `/api/volunteers` | Admin |
+| `GET` | `/api/volunteers/:id` | Self or admin |
+| `PATCH` | `/api/volunteers/:id` | Self or admin |
+| `DELETE` | `/api/volunteers/:id` | Admin |
+| `GET` | `/api/volunteers/:id/signups` | Self or admin |
+| `GET` | `/api/volunteers/:id/summary` | Self or admin |
+
+Signups intentionally do not have full CRUD endpoints. There is no `DELETE` endpoint; cancelled signups are retained for audit history and waitlist promotion.
+
+## Validation and Error Handling
+
+Zod schemas in `src/validators/` validate request bodies before they reach a service. Validation includes:
+
+- A cross-field check requiring `endTime` to be later than `startTime`
+- ObjectId format checks
+- Separate guards for route parameters
+
+Services throw typed errors such as `NotFoundError` and `ConflictError`. Centralized error middleware in `app.ts` converts them to `404`, `409`, or `500` responses, so controllers do not need individual `try`/`catch` blocks.
+
 ## Testing
-## Running
-Integration tests run against an in-memory MongoDB (`mongodb-memory-server`) using `node:test` and Supertest. They cover signup concurrency, waitlist promotion, and authentication and authorization.
+
+Integration tests use `node:test`, Supertest, and an in-memory MongoDB instance provided by `mongodb-memory-server`. They cover authentication and authorization, concurrent signups, and waitlist promotion.
+
 ```bash
-npm install
-npm run dev        # src/server.ts directly, no build step
-npm run typecheck
-npm run build
 npm test
 ```
-## Limitations
-Needs `.env` with `MONGODB_URI`.
+
+## Available Scripts
+
+```bash
+npm run dev        # Run src/server.ts directly without a build step
+npm run typecheck  # Check TypeScript types
+npm run build      # Build the project
+npm test           # Run the test suite
+npm start          # Start the built application
+```
+
 ## Known Limitations
-- No auth — any request can cancel any signup by id.
-- No shift-time-overlap checking across a volunteer's signups.
-- JWTs can't be revoked before they expire (7 days).
-- Login has no rate limiting.
-- Overlapping shifts for the same volunteer aren't detected.
+
+- Overlapping shifts for the same volunteer are not detected.
+- JWTs cannot be revoked before they expire (seven days).
+- Login does not have rate limiting.
